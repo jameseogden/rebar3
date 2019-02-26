@@ -233,17 +233,33 @@ format_warnings(Source, Warnings, Opts) ->
 maybe_report({{error, {error, _Es, _Ws}=ErrorsAndWarnings}, {source, _}}) ->
     maybe_report(ErrorsAndWarnings);
 maybe_report([{error, E}, {source, S}]) ->
-    report(["unexpected error compiling " ++ S, io_lib:fwrite("~n~p", [E])]);
+    report(["unexpected error compiling " ++ S, io_lib:fwrite("~n~p", [E])], report_stream());
 maybe_report({error, Es, Ws}) ->
-    report(Es),
-    report(Ws);
+    Stream =report_stream(),
+    report(Es, Stream),
+    report(Ws, Stream);
 maybe_report(_) ->
     ok.
 
 %% @private Outputs a bunch of strings, including a newline
 -spec report([string()]) -> ok.
 report(Messages) ->
-    lists:foreach(fun(Msg) -> io:format("~ts~n", [Msg]) end, Messages).
+    report(Messages, standard_io).
+
+%% @private Outputs a bunch of strings, including a newline
+-spec report([string()], atom) -> ok.
+report(Messages, Stream) -> 
+    lists:foreach(fun(Msg) -> io:format(Stream, "~ts~n", [Msg]) end, Messages).
+
+%% @private determine the output stream for errors & warnings
+-spec report_stream() -> atom.
+report_stream() ->
+    case os:getenv("REBAR_USESTDERR") of
+            "1" ->
+                standard_error;
+            _ ->
+                standard_io
+        end.
 
 %% private format compiler errors into proper outputtable strings
 -spec format_errors(_, Extra, [err_or_warn()]) -> [string()] when
