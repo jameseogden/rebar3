@@ -35,7 +35,8 @@
          error_tuple/4,
          report/1,
          maybe_report/1,
-         format_error_source/2]).
+         format_error_source/2,
+         report_stream/0]).
 
 -type desc() :: term().
 -type loc() :: {line(), col()} | line().

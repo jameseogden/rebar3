@@ -620,7 +620,7 @@ expand_sh_flag(use_stdout) ->
     {output_handler,
      fun(Line, Acc) ->
              %% Line already has a newline so don't use ?CONSOLE which adds one
-             io:format("~ts", [Line]),
+             io:format(determine_output_stream(Line), "~ts", [Line]),
              [Line | Acc]
      end};
 expand_sh_flag({use_stdout, false}) ->
@@ -632,6 +632,20 @@ expand_sh_flag({cd, _CdArg} = Cd) ->
     {port_settings, Cd};
 expand_sh_flag({env, _EnvArg} = Env) ->
     {port_settings, Env}.
+
+determine_output_stream(Line) ->
+    SearchableLine = string:lowercase(Line),
+    ErrorOrWarning = 
+             (string:str(SearchableLine, " warning: ") > 0) or 
+             (string:str(SearchableLine, " error: ") > 0),
+         %io:format(user, "~p~n", [SearchableLine]),
+    case ErrorOrWarning of 
+        true ->
+            rebar_base_compiler:report_stream();
+        false -> 
+            standard_io
+    end.
+            
 
 -type err_handler() :: fun((string(), {integer(), string()}) -> no_return()).
 -spec log_msg_and_abort(string()) -> err_handler().
