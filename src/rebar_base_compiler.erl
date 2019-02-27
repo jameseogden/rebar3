@@ -244,7 +244,8 @@ maybe_report(_) ->
 %% @private Outputs a bunch of strings, including a newline
 -spec report([string()]) -> ok.
 report(Messages) ->
-    report(Messages, standard_io).
+    Stream =report_stream(),
+    report(Messages, Stream).
 
 %% @private Outputs a bunch of strings, including a newline
 -spec report([string()], atom) -> ok.
